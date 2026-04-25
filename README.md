@@ -138,19 +138,9 @@ Watching for new images... (Ctrl+C to stop)
 ## Configuration
 
 Edit the variables at the top of `webp_converter.py`:
+VariableDefaultDescription`SCREENSHOTS_DIR~/Desktop`Screenshot source (macOS default)`FILTER_DESKTOP_BY_PREFIXTrue`Only convert screenshot-prefixed files on Desktop`AIRDROP_DIR~/Downloads`AirDrop source`WATCH_PRIVATE_TMPTrue`Also watch /private/tmp (Sonoma bug fallback)`OUTPUT_DIR~/Pictures/WebP_ss`WebP output directory`WEBP_QUALITY95`Quality 1-100 (95 = high quality lossy)`IMAGE_EXTENSIONS.png .jpg .jpeg .heic`Formats to watch`SCREENSHOT_PREFIXES("Screenshot ", "Screen Shot ")`Recognized prefixes`DELETE_SCREENSHOT_ORIGINALFalse`Delete original screenshot after conversion (opt-in)`DELETE_MODE"on_convert""on_convert"` = only new conversions; `"on_exists"` = also when output already existed
 
-| Variable | Default | Description |
-|---|---|---|
-| `SCREENSHOTS_DIR` | `~/Desktop` | Screenshot source (macOS default) |
-| `FILTER_DESKTOP_BY_PREFIX` | `True` | Only convert screenshot-prefixed files on Desktop |
-| `AIRDROP_DIR` | `~/Downloads` | AirDrop source |
-| `WATCH_PRIVATE_TMP` | `True` | Also watch /private/tmp (Sonoma bug fallback) |
-| `OUTPUT_DIR` | `~/Pictures/WebP_ss` | WebP output directory |
-| `WEBP_QUALITY` | `95` | Quality 1-100 (95 = high quality lossy) |
-| `IMAGE_EXTENSIONS` | `.png .jpg .jpeg .heic` | Formats to watch |
-| `SCREENSHOT_PREFIXES` | `("Screenshot ", "Screen Shot ")` | Recognized prefixes |
-
-If you moved your screenshot folder via cmd+shift+5 -> Options, update `SCREENSHOTS_DIR` and set `FILTER_DESKTOP_BY_PREFIX = False`.
+If you moved your screenshot folder via cmd+shift+5 -&gt; Options, update `SCREENSHOTS_DIR` and set `FILTER_DESKTOP_BY_PREFIX = False`.
 
 ---
 

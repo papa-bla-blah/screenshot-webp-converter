@@ -112,6 +112,18 @@ SCREENSHOT_PREFIXES = ("Screenshot ", "Screen Shot ")
 # Logging: off by default. Run with --verbose / -v to enable.
 VERBOSE = False
 
+# Auto-delete original screenshot after confirmed successful conversion.
+# OFF by default — set to True to enable.
+# Only deletes if the WebP output file exists and is non-zero bytes after save.
+# Two modes (set DELETE_MODE to one of these strings):
+#   "on_convert"  — delete only when a new conversion is performed
+#   "on_exists"   — delete if output already existed too (file was already done)
+# Screenshots only. AirDrop originals are never deleted (Downloads folder is
+# shared with browser downloads etc — too risky). Advanced users can extend
+# this to AirDrop by calling delete_original() in the AirDrop handler.
+DELETE_SCREENSHOT_ORIGINAL = False
+DELETE_MODE = "on_convert"  # "on_convert" or "on_exists"
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # END CONFIGURATION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -159,14 +171,28 @@ def wait_for_file_stable(filepath: Path, timeout: float = 2.0) -> bool:
     return True
 
 
+def delete_original(image_path: Path):
+    """Delete the original source file. Logs result either way."""
+    try:
+        image_path.unlink()
+        log(f"Deleted original: {image_path.name}")
+    except Exception as e:
+        log(f"Could not delete original {image_path.name}: {e}", force=True)
+
+
 def convert_image_to_webp(image_path: Path, is_screenshot: bool = True):
     try:
         wait_for_file_stable(image_path)
         output_filename = get_output_filename(image_path.name, is_screenshot=is_screenshot)
         output_path = OUTPUT_DIR / output_filename
+
         if output_path.exists():
             log(f"Skip (exists): {output_filename}")
+            # Delete original even if already converted, if mode allows
+            if is_screenshot and DELETE_SCREENSHOT_ORIGINAL and DELETE_MODE == "on_exists":
+                delete_original(image_path)
             return
+
         original_size = os.path.getsize(image_path)
         with Image.open(image_path) as img:
             if img.mode == 'P':
@@ -178,8 +204,16 @@ def convert_image_to_webp(image_path: Path, is_screenshot: bool = True):
             elif img.mode != 'RGB':
                 img = img.convert('RGB')
             img.save(output_path, "WebP", quality=WEBP_QUALITY)
-        new_size = os.path.getsize(output_path)
-        log(f"Converted: {output_filename} ({original_size/1024:.0f}KB -> {new_size/1024:.0f}KB)")
+
+        # Confirm output is real before deleting anything
+        if output_path.exists() and output_path.stat().st_size > 0:
+            new_size = output_path.stat().st_size
+            log(f"Converted: {output_filename} ({original_size/1024:.0f}KB -> {new_size/1024:.0f}KB)")
+            if is_screenshot and DELETE_SCREENSHOT_ORIGINAL:
+                delete_original(image_path)
+        else:
+            log(f"Warning: output missing or empty after save — original kept: {image_path.name}", force=True)
+
     except PermissionError as e:
         log(f"Permission error - {image_path.name}: {e}", force=True)
     except Exception as e:
